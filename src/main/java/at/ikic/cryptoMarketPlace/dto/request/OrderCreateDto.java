@@ -1,6 +1,6 @@
 package at.ikic.cryptoMarketPlace.dto.request;
 
-import at.ikic.tradingPlatform.enums.TransactionType;
+import at.ikic.cryptoMarketPlace.enums.TransactionType;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;

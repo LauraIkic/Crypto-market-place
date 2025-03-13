@@ -9,10 +9,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>at.ikic</groupId>
-	<artifactId>tradingPlatform</artifactId>
+	<artifactId>cryptoMarketPlace</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>tradingPlatform</name>
-	<description>A Platform for trading assets.</description>
+	<name>cryptoMarketPlace</name>
+	<description>Mircroservice crypto marketplace</description>
 	<url/>
 	<licenses>
 		<license/>
