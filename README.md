@@ -1,2 +1,1 @@
-# Crypto-market-place
-Microservice for Trading Platform
+Microservice for crypto market place
