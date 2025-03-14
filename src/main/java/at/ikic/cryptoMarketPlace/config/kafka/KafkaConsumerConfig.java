@@ -1,7 +1,8 @@
 package at.ikic.cryptoMarketPlace.config.kafka;
 
-import at.ikic.cryptoMarketPlace.entity.Coin;
-import at.ikic.cryptoMarketPlace.deserializer.ListCoinDeserializer;
+import at.ikic.cryptoMarketPlace.constants.KafkaConstant;
+import at.ikic.cryptoMarketPlace.deserializer.OrderDeserializer;
+import at.ikic.cryptoMarketPlace.entity.Order;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.context.annotation.Bean;
@@ -14,7 +15,6 @@ import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @Configuration
@@ -22,20 +22,20 @@ import java.util.Map;
 public class KafkaConsumerConfig {
 
     @Bean
-    public ConsumerFactory<String, List<Coin>> consumerFactory() {
+    public ConsumerFactory<String, Order> consumerFactory() {
         Map<String, Object> consumerProps = new HashMap<>();
         consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-        consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "cryptoGroup");
+        consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, KafkaConstant.CRYPTO_GROUP);
         consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 
-        ListCoinDeserializer listCoinDeserializer = new ListCoinDeserializer();
+        OrderDeserializer orderDeserializer = new OrderDeserializer();
 
-        return new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(), new ErrorHandlingDeserializer<>(listCoinDeserializer));
+        return new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(), new ErrorHandlingDeserializer<>(orderDeserializer));
     }
 
     @Bean
-    public KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<String, List<Coin>>> kafkaListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, List<Coin>> factory = new ConcurrentKafkaListenerContainerFactory<>();
+    public KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<String, Order>> kafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, Order> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
 
         return factory;
