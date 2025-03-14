@@ -2,28 +2,25 @@ package at.ikic.cryptoMarketPlace.service;
 
 import at.ikic.cryptoMarketPlace.entity.Marketplace;
 import at.ikic.cryptoMarketPlace.entity.Order;
+import at.ikic.cryptoMarketPlace.enums.TransactionStatus;
+import at.ikic.cryptoMarketPlace.enums.TransactionType;
 import at.ikic.cryptoMarketPlace.repository.MarketPlaceRepository;
+import at.ikic.cryptoMarketPlace.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Optional;
+import java.util.List;
 
 @Service
 public class MarketPlaceService {
-
+    @Autowired
+    private OrderRepository orderRepository;
     @Autowired
     private MarketPlaceRepository marketplaceRepository;
-
     public Marketplace getOrCreateMarketplace() {
-        Optional<Marketplace> marketplace = marketplaceRepository.findFirstByOrderByIdAsc();
-
-        if (marketplace.isPresent()) {
-            return marketplace.get();
-        } else {
-            Marketplace newMarketplace = new Marketplace();
-            return marketplaceRepository.save(newMarketplace);
-        }
+        return marketplaceRepository.findFirstByOrderByIdAsc()
+                .orElseGet(() -> marketplaceRepository.save(new Marketplace()));
     }
 
     public void addOrderToMarketPlace(Order order) {
@@ -34,8 +31,45 @@ public class MarketPlaceService {
         }
 
         marketplace.getOrders().add(order);
-
         marketplaceRepository.save(marketplace);
     }
 
+    public Order matchOrder(Order order) {
+        Marketplace marketplace = this.getOrCreateMarketplace();
+        List<Order> orderList = marketplace.getOrders();
+
+        return findMatchingOrder(order, orderList);
+    }
+
+    public void processTransaction(Order matchingOrder, Order order) {
+        if (matchingOrder == null || order == null) return;
+        Marketplace marketplace = this.getOrCreateMarketplace();
+
+        marketplace.getOrders().remove(matchingOrder);
+
+        marketplaceRepository.save(marketplace);
+
+        matchingOrder.setStatus(TransactionStatus.CLOSED);
+        order.setStatus(TransactionStatus.CLOSED);
+
+        /**
+         * TODO: Kafka producer send to orderResponseTopic
+         */
+        System.out.println("MATCHING ORDER FOUND");
+    }
+
+    /**
+     * TODO: turn into sql query
+     */
+    private Order findMatchingOrder(Order order, List<Order> orderList) {
+        TransactionType oppositeType = (order.getType() == TransactionType.BUY)
+                ? TransactionType.SELL : TransactionType.BUY;
+
+        for (Order o : orderList) {
+            if (o.getType() == oppositeType && o.getPrice() == order.getPrice() && o.getCoinId() == order.getCoinId()) {
+                return o;
+            }
+        }
+        return null;
+    }
 }
