@@ -60,10 +60,8 @@ public class MarketPlaceService {
         matchingOrder.setStatus(TransactionStatus.CLOSED);
         order.setStatus(TransactionStatus.CLOSED);
 
-        /**
-         * TODO: Kafka producer send to orderResponseTopic
-         */
-        System.out.println("MATCHING ORDER FOUND");
+        //processed order
+        orderResponseProducer.sendOrderToKafka(order);
     }
 
     /**
