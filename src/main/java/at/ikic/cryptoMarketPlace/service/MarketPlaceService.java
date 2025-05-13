@@ -4,8 +4,10 @@ import at.ikic.cryptoMarketPlace.entity.Marketplace;
 import at.ikic.cryptoMarketPlace.entity.Order;
 import at.ikic.cryptoMarketPlace.enums.TransactionStatus;
 import at.ikic.cryptoMarketPlace.enums.TransactionType;
+import at.ikic.cryptoMarketPlace.kafka.producer.OrderResponseProducer;
 import at.ikic.cryptoMarketPlace.repository.MarketPlaceRepository;
 import at.ikic.cryptoMarketPlace.repository.OrderRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,13 +18,19 @@ import java.util.List;
 public class MarketPlaceService {
     @Autowired
     private OrderRepository orderRepository;
+
     @Autowired
     private MarketPlaceRepository marketplaceRepository;
+
+    @Autowired
+    private OrderResponseProducer orderResponseProducer;
+
     public Marketplace getOrCreateMarketplace() {
         return marketplaceRepository.findFirstByOrderByIdAsc()
                 .orElseGet(() -> marketplaceRepository.save(new Marketplace()));
     }
 
+    @Transactional
     public void addOrderToMarketPlace(Order order) {
         Marketplace marketplace = this.getOrCreateMarketplace();
 
@@ -52,10 +60,8 @@ public class MarketPlaceService {
         matchingOrder.setStatus(TransactionStatus.CLOSED);
         order.setStatus(TransactionStatus.CLOSED);
 
-        /**
-         * TODO: Kafka producer send to orderResponseTopic
-         */
-        System.out.println("MATCHING ORDER FOUND");
+        //processed order
+        orderResponseProducer.sendOrderToKafka(order);
     }
 
     /**
