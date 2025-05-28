@@ -1,9 +1,9 @@
 version: '3.8'
 
 services:
-  db:
+  mysql:
     image: mysql:8
-    container_name: mysql-container
+    container_name: mysql-container-market-place
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root
@@ -11,7 +11,7 @@ services:
       MYSQL_USER: spring
       MYSQL_PASSWORD: spring
     ports:
-      - "3306:3306"
+      - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
@@ -19,30 +19,39 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - kafka-network
 
   app:
-    build: .
-    container_name: springboot-app
+    build:
+      context: .
+    container_name: springboot-app-market-place
     depends_on:
-      db:
+      mysql:
         condition: service_healthy
     ports:
-      - "5457:5457"
+      - "5458:5457"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/marketPlace?serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/marketPlace?serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: spring
       SPRING_DATASOURCE_PASSWORD: spring
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    networks:
+      - kafka-network
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.6.0
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
+    container_name: zookeeper-market-place
     ports:
       - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+    networks:
+      - kafka-network
 
   kafka:
     image: confluentinc/cp-kafka:7.6.0
+    container_name: kafka
     depends_on:
       - zookeeper
     ports:
@@ -53,6 +62,12 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - kafka-network
 
 volumes:
   mysql_data:
+
+networks:
+  kafka-network:
+    external: true

@@ -11,18 +11,20 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication
 @EnableScheduling
 @EnableKafka
-public class CryptoMarketPlaceApplication implements CommandLineRunner {
+public class CryptoMarketPlaceApplication {
 
+/*
 	@Autowired
 	private MarketPlaceService marketplaceService;
+*/
 
 	public static void main(String[] args) {
 		SpringApplication.run(CryptoMarketPlaceApplication.class, args
 		);
 	}
 
-	@Override
+/*	@Override
 	public void run(String... args) throws Exception {
 		marketplaceService.getOrCreateMarketplace();
-	}
+	}*/
 }
